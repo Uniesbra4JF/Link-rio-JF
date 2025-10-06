@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linkário - Galeria de Links</title>
+    <!-- Carrega o Tailwind CSS para estilização e responsividade -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        /* ======================================================= */
+        /* CORES E VARIÁVEIS DO NOVO DARK THEME */
+        /* ======================================================= */
+        :root {
+            --bg-primary: #0A0A0A; /* Fundo principal: Preto profundo */
+            --bg-card: #171717;    /* Fundo dos cartões: Preto sutilmente mais claro */
+            --bg-highlight: #272727; /* Fundo de hover/seleção */
+            --text-main: #FAFAFA;  /* Texto principal: Branco suave */
+            --text-secondary: #A3A3A3; /* Texto descritivo/Placeholder: Cinza claro */
+            --accent-color: #3B82F6; /* Azul primário (blue-500) */
+            --accent-hover: #60A5FA; /* Azul mais claro para hover (blue-400) */
+            --shadow-subtle: 0 4px 10px rgba(0, 0, 0, 0.5); /* Sombra mais intensa para Dark Mode */
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            /* Suaviza as fontes para melhor legibilidade */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Classes utilitárias (Tailwind customizado) */
+        .bg-card { background-color: var(--bg-card); }
+        .bg-highlight { background-color: var(--bg-highlight); }
+        .text-main { color: var(--text-main); }
+        .text-secondary { color: var(--text-secondary); }
+        .ring-accent { --tw-ring-color: var(--accent-color); }
+
+        /* Estilo para o estado ativo dos filtros/botões */
+        .filter-active {
+            background-color: var(--accent-color) !important;
+            color: var(--bg-primary) !important;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); /* Sombra suave para o botão ativo */
+        }
+
+        /* ======================================================= */
+        /* MELHORIA NOS CARDS DE LINK */
+        /* ======================================================= */
+        .link-card {
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            border: 1px solid #272727; /* Borda sutil */
+            box-shadow: var(--shadow-subtle);
+        }
+        .link-card:hover {
+            transform: translateY(-4px); /* Deslocamento maior para o hover */
+            border-color: var(--accent-color); /* Borda destaca em azul */
+            box-shadow: 0 12px 25px rgba(59, 130, 246, 0.2); /* Sombra com brilho azul */
+        }
+        
+        /* Ícone / Contêiner da Imagem (Melhora o visual 1:1) */
+        .link-icon-container {
+             background: linear-gradient(135deg, #3B82F6, #1D4ED8); /* Gradiente no fundo do ícone */
+             color: #E0F2FE; /* Cor do texto no ícone */
+             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* ======================================================= */
+        /* ESTILOS DE TRUNCAMENTO DA DESCRIÇÃO */
+        /* ======================================================= */
+        .description-truncated {
+            display: -webkit-box;
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer; 
+            max-height: 48px; /* Altura para 2 linhas (exemplo) */
+            transition: max-height 0.3s ease-out;
+        }
+        .description-expanded {
+            -webkit-line-clamp: unset;
+            max-height: 500px; 
+            cursor: default; 
+            white-space: pre-wrap; /* Mantém quebras de linha se houver */
+        }
+    </style>
+</head>
+<body class="bg-primary p-4 sm:p-8">
+
+    <!-- Configuração do Tailwind com as cores customizadas -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': 'var(--bg-primary)',
+                        'card': 'var(--bg-card)',
+                        'highlight': 'var(--bg-highlight)',
+                        'main': 'var(--text-main)',
+                        'secondary': 'var(--text-secondary)',
+                        'accent': 'var(--accent-color)',
+                        'accent-hover': 'var(--accent-hover)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Conteúdo Principal do Linkário -->
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- CABEÇALHO E FILTROS -->
+        <div class="pb-4 pt-2 rounded-b-xl">
+            
+            <!-- Linha 1: Título e Menus -->
+            <header class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                <div class="flex items-center w-full sm:w-auto mb-3 sm:mb-0">
+                    <h1 class="text-4xl font-extrabold tracking-tight text-accent mr-6">
+                        Linkário
+                    </h1>
+                </div>
+            
+                <!-- Grupo de Botões/Menus à Direita -->
+                <div class="w-full sm:w-auto flex justify-end items-center gap-2">
+                    
+                    <!-- Botão de Modo Admin e Dropdown -->
+                    <div class="relative">
+                        <button id="adminModeToggle" 
+                                class="p-3 rounded-xl bg-card border border-gray-700 hover:bg-highlight text-sm text-secondary hover:text-accent transition duration-150 ease-in-out whitespace-nowrap flex items-center shadow-lg"
+                                onclick="app.toggleAdminDropdown()">
+                            Modo Admin
+                            <svg id="admin-icon" class="w-4 h-4 ml-2 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+
+                        <div id="adminMenuDropdown" class="absolute hidden top-full right-0 mt-3 w-60 bg-card rounded-xl shadow-2xl border border-gray-700 z-40 p-2 overflow-hidden">
+                            <button onclick="app.enterEditMode()" 
+                                    class="w-full text-left p-3 rounded-lg text-main hover:bg-highlight transition duration-150 flex items-center">
+                                <svg class="w-5 h-5 mr-3 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                Editar Links
+                            </button>
+                            <button onclick="app.openNewLinkForm()" 
+                                    class="w-full text-left p-3 rounded-lg text-main hover:bg-highlight transition duration-150 flex items-center mt-1">
+                                <svg class="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                Criar Novo Card
+                            </button>
+                            <hr id="adminMenuDivider" class="my-2 border-gray-800 hidden">
+                            <button id="adminMenuExit" onclick="app.exitEditMode()" 
+                                    class="w-full text-center p-3 rounded-lg bg-red-600/20 text-red-400 font-medium hover:bg-red-600/40 transition duration-150 hidden">
+                                Sair do Modo de Edição
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Botão de Menu de Opções (Exportar/Importar) -->
+                    <div class="relative">
+                        <button id="optionsMenuToggle"
+                                class="p-3 rounded-xl bg-card border border-gray-700 hover:bg-highlight text-secondary hover:text-accent transition duration-150 ease-in-out shadow-lg"
+                                onclick="app.toggleOptionsMenu()">
+                            <!-- Ícone de 3 pontos verticais (kebab menu) -->
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+                        </button>
+
+                        <div id="optionsMenuDropdown" class="absolute hidden top-full right-0 mt-3 w-60 bg-card rounded-xl shadow-2xl border border-gray-700 z-40 p-2 overflow-hidden">
+                            <button onclick="app.exportDataToJson()"
+                                    class="w-full text-left p-3 rounded-lg text-main hover:bg-highlight transition duration-150 flex items-center">
+                                <!-- Ícone de Download -->
+                                <svg class="w-5 h-5 mr-3 text-sky-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                Exportar em JSON
+                            </button>
+                            <button onclick="app.triggerJsonImport()"
+                                    class="w-full text-left p-3 rounded-lg text-main hover:bg-highlight transition duration-150 flex items-center mt-1">
+                                <!-- Ícone de Upload -->
+                                <svg class="w-5 h-5 mr-3 text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                                Importar de JSON
+                            </button>
+                            <!-- Input de arquivo oculto para a importação -->
+                            <input type="file" id="jsonUpload" class="hidden" accept=".json" onchange="app.importDataFromJson(event)">
+                        </div>
+                    </div>
+
+                </div>
+
+            </header>
+            
+            <!-- Linha 2: CONTROLES DE FILTRO DO LINKÁRIO -->
+            <div id="filter-controls" class="grid grid-cols-1 sm:grid-cols-12 gap-3 mt-4">
+                
+                <div class="sm:col-span-4">
+                    <input type="text" id="searchInput" placeholder="Buscar links por nome ou descrição..." 
+                        class="w-full p-3 rounded-xl bg-card border border-gray-700 focus:border-accent focus:ring-2 ring-accent text-main placeholder-secondary transition duration-150 ease-in-out shadow-inner form-input"
+                        oninput="app.updateFilter('search', this.value)">
+                </div>
+
+                <div class="sm:col-span-2">
+                    <select id="categoryFilter" 
+                        class="w-full p-3 rounded-xl bg-card border border-gray-700 focus:border-accent focus:ring-2 ring-accent text-main appearance-none transition duration-150 ease-in-out form-input"
+                        onchange="app.updateFilter('category', this.value)">
+                        <option value="">Categoria</option>
+                    </select>
+                </div>
+
+                <div class="sm:col-span-3 relative">
+                    <button id="tagDropdownButton" 
+                            class="w-full p-3 rounded-xl bg-card border border-gray-700 hover:bg-highlight text-main transition duration-150 ease-in-out flex justify-center items-center shadow-lg"
+                            onclick="app.toggleTagDropdown()">
+                        Tags Selecionadas
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="tagDropdown" class="absolute hidden mt-2 w-full sm:w-80 bg-card rounded-xl shadow-2xl border border-gray-700 z-20 p-4 right-0 sm:left-0">
+                        <p class="text-sm font-semibold mb-2 text-main">Filtrar por Tags:</p>
+                        <div id="tagFilterButtons" class="flex flex-wrap gap-2"></div>
+                        <button class="w-full mt-3 p-2 rounded-lg bg-accent text-primary font-medium hover:opacity-90 transition" onclick="app.toggleTagDropdown()">
+                            Fechar e Aplicar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="sm:col-span-3 flex justify-end gap-3">
+                    <button id="favoriteToggle" 
+                        class="p-3 rounded-xl bg-card border border-gray-700 hover:bg-highlight text-secondary hover:text-accent transition duration-150 ease-in-out flex items-center shadow-lg"
+                        onclick="app.toggleFavorite()">
+                        <svg class="w-5 h-5" id="heart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-.318-.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                        <span class="hidden sm:inline ml-2">Favoritos</span>
+                    </button>
+                    
+                    <button id="sortToggle" 
+                        class="p-3 rounded-xl bg-card border border-gray-700 hover:bg-highlight text-secondary hover:text-accent transition duration-150 ease-in-out flex items-center shadow-lg"
+                        onclick="app.toggleSort()">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l3-3m0 0l3 3m-3-3v12"></path></svg>
+                        <span class="hidden sm:inline ml-2">Ordem A-Z</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORMULÁRIO GENÉRICO DE LINK -->
+        <div id="linkFormContainer" class="bg-card p-6 rounded-2xl shadow-2xl mt-6 mb-8 hidden border border-accent/50">
+            <h2 id="linkFormTitle" class="text-3xl font-bold mb-6 text-accent">Adicionar Novo Link</h2>
+            <form id="linkDataForm" onsubmit="app.saveOrUpdateLink(event)">
+                <input type="hidden" id="linkId" name="linkId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="linkName" class="block text-sm font-medium mb-1 text-secondary">Nome (Obrigatório)</label>
+                        <input type="text" id="linkName" name="linkName" required class="form-input" placeholder="Ex: Google Developers">
+                    </div>
+                    <div>
+                        <label for="linkUrl" class="block text-sm font-medium mb-1 text-secondary">URL (Obrigatório)</label>
+                        <input type="url" id="linkUrl" name="linkUrl" required class="form-input" placeholder="Ex: https://developers.google.com/">
+                    </div>
+                    <div>
+                        <label for="linkCategory" class="block text-sm font-medium mb-1 text-secondary">Categoria</label>
+                        <input type="text" id="linkCategory" name="linkCategory" class="form-input" placeholder="Ex: Desenvolvimento, Ferramentas">
+                    </div>
+                    <div>
+                        <label for="linkTags" class="block text-sm font-medium mb-1 text-secondary">Tags (Separar por vírgula)</label>
+                        <input type="text" id="linkTags" name="linkTags" class="form-input" placeholder="Ex: código, api, docs">
+                    </div>
+                </div>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center border-t border-gray-700 pt-6">
+                    <div class="md:col-span-2">
+                        <label for="linkImage" class="block text-sm font-medium mb-2 text-secondary">Ícone/Imagem (1:1, Opcional)</label>
+                        <input type="file" id="linkImage" name="linkImage" accept="image/*" class="form-input p-2 cursor-pointer" onchange="app.previewImage(this)">
+                        <p class="text-xs text-gray-500 mt-1">Imagens serão redimensionadas para 100x100px (JPEG 70%).</p>
+                        <div id="removeImageContainer" class="mt-2 hidden">
+                            <button type="button" onclick="app.removeImage()" class="text-sm text-red-400 hover:text-red-500 transition">Remover Imagem Atual</button>
+                            <input type="hidden" id="linkImageBase64" name="linkImageBase64">
+                        </div>
+                    </div>
+                    <div class="md:col-span-1 flex justify-center md:justify-end">
+                        <div id="imagePreviewContainer" class="w-28 h-28 bg-highlight rounded-xl border-4 border-gray-600 flex items-center justify-center overflow-hidden shadow-xl">
+                            <span id="imagePreviewPlaceholder" class="text-gray-500 text-xs text-center p-2">Preview 100x100</span>
+                            <img id="imagePreview" src="" alt="Pré-visualização do ícone" class="w-full h-full object-cover hidden">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 border-t border-gray-700 pt-6">
+                    <label for="linkDescription" class="block text-sm font-medium mb-1 text-secondary">Descrição (Obrigatório)</label>
+                    <textarea id="linkDescription" name="linkDescription" rows="3" required class="form-input" placeholder="Uma breve e útil descrição sobre o que o link faz..."></textarea>
+                </div>
+                <div class="flex items-center justify-between mt-8">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="linkFavorite" name="linkFavorite" class="w-5 h-5 text-accent bg-gray-700 border-gray-600 rounded focus:ring-accent accent-accent cursor-pointer">
+                        <label for="linkFavorite" class="ml-3 text-sm font-medium text-main">Marcar como Favorito</label>
+                    </div>
+                    <div class="flex space-x-4">
+                        <button type="button" onclick="document.getElementById('linkFormContainer').classList.add('hidden')" 
+                                class="px-6 py-2 rounded-lg text-secondary border border-gray-700 hover:bg-highlight transition font-medium">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="formSubmitButton"
+                                class="px-6 py-2 rounded-lg bg-accent text-primary font-bold hover:bg-accent-hover transition shadow-lg">
+                            Salvar Link
+                        </button>
+                    </div>
+                </div>
+                <p id="formMessage" class="mt-4 text-sm text-red-400 hidden p-2 bg-red-900/20 rounded-lg"></p>
+            </form>
+        </div>
+
+        <!-- GRADE DE LINKS -->
+        <div id="links-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-6"></div>
+
+        <!-- MENSAGEM DE NENHUM RESULTADO -->
+        <div id="no-results" class="text-center py-20 hidden">
+            <p class="text-3xl font-bold text-accent mb-3">Ops! Nada por aqui...</p>
+            <p class="text-lg text-secondary">Nenhum link encontrado com os filtros atuais. 🧐</p>
+        </div>
+
+    </div>
+
+<script type="module">
+    // ================================================================
+    // LINKÁRIO: LÓGICA DE GALERIA DE LINKS (LOCAL DATA)
+    // ================================================================
+
+    const app = {
+        linksData: [
+            { id: 1, name: "Behance - Design", url: "https://www.behance.net/", description: "Plataforma para descobrir e compartilhar trabalhos criativos e portfólios. Esta é uma descrição longa de exemplo para testar a funcionalidade de truncamento. Se você clicar, ela deve expandir e mostrar todo o texto.", category: "Arte & Design", tags: ["Inspiração", "Portfólio", "Design"], isFavorite: true, dateAdded: "2024-10-10", image_base64: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNMTIgMkwyLjA1IDEwLjAxTDUuMDIgMTguMzhMMTguOTggMTguMzhMMjEuOTUgMTAuMDFMMTIgMloiLz4KPC9zdmc+" },
+            { id: 2, name: "Tailwind CSS Docs", url: "https://tailwindcss.com/docs", description: "Documentação oficial do framework CSS utilitário Tailwind. Essencial para desenvolvimento rápido e layouts responsivos.", category: "Desenvolvimento", tags: ["Frontend", "CSS", "Framework"], isFavorite: false, dateAdded: "2024-05-15", image_base64: "" },
+            { id: 3, name: "Gemini API Google", url: "https://ai.google.dev/gemini-api", description: "Página principal de documentação da API Gemini para construção de aplicações de IA.", category: "Inteligência Artificial", tags: ["IA", "API", "Google", "Code"], isFavorite: true, dateAdded: "2024-09-20", image_base64: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRkZGIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI5Ii8+CiAgPHBhdGggZD0iTTEyIDZ2Nmw0IDQiLz4KPC9zdmc+" },
+        ],
+        currentFilters: { search: '', category: '', activeTags: [], isFavorite: false, isSorted: false, isAdminMode: false },
+        nextId: 4,
+
+        isNew(dateAdded) {
+            if (!dateAdded) return false;
+            return (new Date().getTime() - new Date(dateAdded).getTime()) < (14 * 24 * 60 * 60 * 1000);
+        },
+
+        createLinkCard(link) {
+            const card = document.createElement('a');
+            card.href = link.url;
+            card.target = "_blank";
+            card.className = "link-card block bg-card p-6 rounded-2xl transition duration-300 relative";
+            
+            if (this.currentFilters.isAdminMode) {
+                card.href = "javascript:void(0)"; 
+                card.classList.add('ring-4', 'ring-yellow-500/50', 'ring-offset-2', 'ring-offset-primary'); 
+                card.onclick = (e) => { e.preventDefault(); this.openEditForm(link.id); };
+            }
+
+            const iconElement = link.image_base64 ? `<img src="${link.image_base64}" alt="${link.name} Ícone" class="w-full h-full object-cover">` : link.name.charAt(0).toUpperCase();
+            const newBadge = this.isNew(link.dateAdded) ? `<span class="text-xs font-bold px-3 py-0.5 rounded-full bg-blue-600 text-white absolute top-4 right-4 z-10 shadow-xl">NOVO</span>` : '';
+            const favoriteIcon = link.isFavorite ? `<span class="absolute top-4 ${this.isNew(link.dateAdded) ? 'right-16' : 'right-4'} text-red-500 z-10"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></span>` : '';
+            const tagsHtml = link.tags.map(tag => `<span class="text-xs px-2 py-0.5 rounded-full bg-gray-700/70 text-gray-300 font-medium">${tag}</span>`).join('');
+            const adminControls = this.currentFilters.isAdminMode ? `<div class="mt-4 border-t border-gray-800 pt-3 flex justify-between items-center"><span class="text-xs text-yellow-400 font-medium">Modo Edição Ativo</span><button onclick="event.preventDefault(); event.stopPropagation(); app.deleteLink(${link.id})" class="text-xs px-4 py-1.5 rounded-lg bg-red-700 hover:bg-red-800 text-white font-semibold transition shadow-md">Excluir</button></div>` : '';
+
+            card.innerHTML = `
+                ${newBadge}${favoriteIcon}
+                <div class="flex items-start mb-3">
+                    <div class="link-icon-container w-10 h-10 flex items-center justify-center rounded-lg text-xl font-bold mr-4 overflow-hidden shadow-md">${iconElement}</div>
+                    <div class="flex-1 min-w-0"><h3 class="text-xl font-semibold text-main truncate leading-tight mt-1">${link.name}</h3><p class="text-xs text-gray-500 truncate">${link.category}</p></div>
+                </div>
+                <p class="text-secondary text-sm mb-4 description-truncated" onclick="event.stopPropagation(); this.classList.toggle('description-expanded');" title="Clique para expandir">${link.description}</p>
+                <div class="flex flex-wrap gap-2 pt-3 border-t border-gray-800">${tagsHtml}</div>
+                ${adminControls}`;
+            return card;
+        },
+
+        filterLinks() {
+            let filtered = this.linksData.filter(link => {
+                const { search, category, activeTags, isFavorite } = this.currentFilters;
+                const searchTerm = search.toLowerCase();
+                if (searchTerm && !link.name.toLowerCase().includes(searchTerm) && !link.description.toLowerCase().includes(searchTerm)) return false;
+                if (category && link.category !== category) return false;
+                if (activeTags.length > 0 && !activeTags.every(tag => link.tags.includes(tag))) return false;
+                if (isFavorite && !link.isFavorite) return false;
+                return true;
+            });
+            if (this.currentFilters.isSorted) filtered.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+            return filtered;
+        },
+
+        renderLinks() {
+            const linksGrid = document.getElementById('links-grid');
+            const noResults = document.getElementById('no-results');
+            linksGrid.innerHTML = '';
+            const filteredLinks = this.filterLinks();
+            noResults.classList.toggle('hidden', filteredLinks.length > 0);
+            linksGrid.classList.toggle('hidden', filteredLinks.length === 0);
+            filteredLinks.forEach(link => linksGrid.appendChild(this.createLinkCard(link)));
+        },
+
+        updateFilter(key, value) { this.currentFilters[key] = value.trim(); this.renderLinks(); },
+        toggleTag(tag, button) {
+            const index = this.currentFilters.activeTags.indexOf(tag);
+            index > -1 ? this.currentFilters.activeTags.splice(index, 1) : this.currentFilters.activeTags.push(tag);
+            button.classList.toggle('filter-active');
+            this.renderLinks();
+        },
+        toggleFavorite() {
+            this.currentFilters.isFavorite = !this.currentFilters.isFavorite;
+            document.getElementById('favoriteToggle').classList.toggle('filter-active');
+            document.getElementById('heart-icon').classList.toggle('fill-current', this.currentFilters.isFavorite);
+            this.renderLinks();
+        },
+        toggleSort() {
+            this.currentFilters.isSorted = !this.currentFilters.isSorted;
+            document.getElementById('sortToggle').classList.toggle('filter-active');
+            this.renderLinks();
+        },
+        toggleTagDropdown() { document.getElementById('tagDropdown').classList.toggle('hidden'); },
+        
+        toggleOptionsMenu() { document.getElementById('optionsMenuDropdown').classList.toggle('hidden'); },
+
+        toggleAdminDropdown() {
+            const dropdown = document.getElementById('adminMenuDropdown');
+            dropdown.classList.toggle('hidden');
+            document.getElementById('admin-icon').classList.toggle('rotate-180');
+            const isEditing = this.currentFilters.isAdminMode;
+            document.getElementById('adminMenuExit').classList.toggle('hidden', !isEditing);
+            document.getElementById('adminMenuDivider').classList.toggle('hidden', !isEditing);
+        },
+        
+        enterEditMode(isSilent = false) {
+            if (this.currentFilters.isAdminMode) { if (!isSilent) this.toggleAdminDropdown(); return; }
+            this.currentFilters.isAdminMode = true;
+            if (!isSilent) this.toggleAdminDropdown();
+            document.getElementById('linkFormContainer').classList.add('hidden');
+            const btn = document.getElementById('adminModeToggle');
+            btn.classList.add('filter-active', 'bg-yellow-600/80');
+            btn.innerHTML = 'Modo Edição (ATIVO) <svg id="admin-icon" class="w-4 h-4 ml-2 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
+            this.renderLinks(); 
+        },
+        
+        exitEditMode() {
+            this.currentFilters.isAdminMode = false;
+            if (!document.getElementById('adminMenuDropdown').classList.contains('hidden')) this.toggleAdminDropdown();
+            const btn = document.getElementById('adminModeToggle');
+            btn.classList.remove('filter-active', 'bg-yellow-600/80');
+            btn.innerHTML = 'Modo Admin <svg id="admin-icon" class="w-4 h-4 ml-2 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
+            this.renderLinks();
+        },
+        
+        openEditForm(id) {
+            if (!this.currentFilters.isAdminMode) return;
+            const link = this.linksData.find(l => l.id === id);
+            if (!link) return;
+            document.getElementById('linkFormTitle').textContent = "Editar Link Existente";
+            document.getElementById('formSubmitButton').textContent = "Atualizar Link";
+            const form = document.getElementById('linkDataForm');
+            form.elements['linkId'].value = link.id; 
+            form.elements['linkName'].value = link.name;
+            form.elements['linkUrl'].value = link.url;
+            form.elements['linkDescription'].value = link.description;
+            form.elements['linkCategory'].value = link.category;
+            form.elements['linkTags'].value = link.tags.join(', ');
+            form.elements['linkFavorite'].checked = link.isFavorite;
+            const imageBase64Input = document.getElementById('linkImageBase64');
+            imageBase64Input.value = link.image_base64 || '';
+            this.previewImage(document.getElementById('linkImage'));
+            document.getElementById('linkFormContainer').classList.remove('hidden');
+            document.getElementById('formMessage').classList.add('hidden');
+            this.enterEditMode(true);
+        },
+
+        openNewLinkForm() {
+            if (!document.getElementById('adminMenuDropdown').classList.contains('hidden')) this.toggleAdminDropdown();
+            document.getElementById('linkFormTitle').textContent = "Adicionar Novo Link";
+            document.getElementById('formSubmitButton').textContent = "Salvar Link";
+            const form = document.getElementById('linkDataForm');
+            form.reset();
+            form.elements['linkId'].value = '';
+            document.getElementById('linkImageBase64').value = '';
+            this.previewImage(document.getElementById('linkImage'));
+            document.getElementById('linkFormContainer').classList.remove('hidden');
+            if (this.currentFilters.isAdminMode) this.exitEditMode();
+        },
+        
+        processImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_SIZE = 100;
+                        canvas.width = MAX_SIZE; canvas.height = MAX_SIZE;
+                        const ctx = canvas.getContext('2d');
+                        let sx = 0, sy = 0, sWidth = img.width, sHeight = img.height;
+                        if (sWidth > sHeight) { sx = (sWidth - sHeight) / 2; sWidth = sHeight; } 
+                        else if (sHeight > sWidth) { sy = (sHeight - sWidth) / 2; sHeight = sWidth; }
+                        ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, MAX_SIZE, MAX_SIZE);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7));
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        },
+
+        previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            const placeholder = document.getElementById('imagePreviewPlaceholder');
+            const removeContainer = document.getElementById('removeImageContainer');
+            const base64Input = document.getElementById('linkImageBase64');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => { preview.src = e.target.result; };
+                reader.readAsDataURL(input.files[0]);
+                preview.classList.remove('hidden'); placeholder.classList.add('hidden');
+                removeContainer.classList.remove('hidden');
+            } else if (base64Input.value && base64Input.value !== 'REMOVE_FLAG') {
+                preview.src = base64Input.value;
+                preview.classList.remove('hidden'); placeholder.classList.add('hidden');
+                removeContainer.classList.remove('hidden');
+            } else {
+                preview.src = ''; preview.classList.add('hidden'); placeholder.classList.remove('hidden');
+                removeContainer.classList.add('hidden');
+            }
+        },
+        
+        removeImage() {
+            document.getElementById('linkImage').value = '';
+            document.getElementById('linkImageBase64').value = 'REMOVE_FLAG';
+            this.previewImage(document.getElementById('linkImage'));
+        },
+
+        async saveOrUpdateLink(event) {
+            event.preventDefault(); 
+            const form = document.getElementById('linkDataForm');
+            const formMessage = document.getElementById('formMessage');
+            const linkId = form.elements['linkId'].value ? parseInt(form.elements['linkId'].value) : null;
+            const isEditing = linkId !== null;
+
+            const imageFile = form.elements['linkImage'].files[0];
+            let imageBase64 = null;
+            if (imageFile) {
+                form.elements['formSubmitButton'].disabled = true;
+                imageBase64 = await this.processImage(imageFile);
+                form.elements['formSubmitButton'].disabled = false;
+            } else if (isEditing) {
+                const base64Input = form.elements['linkImageBase64'].value;
+                imageBase64 = base64Input === 'REMOVE_FLAG' ? null : this.linksData.find(l => l.id === linkId)?.image_base64;
+            }
+            
+            const linkData = {
+                name: form.elements['linkName'].value.trim(), url: form.elements['linkUrl'].value.trim(),
+                description: form.elements['linkDescription'].value.trim(), category: form.elements['linkCategory'].value.trim() || 'Outros', 
+                tags: form.elements['linkTags'].value.split(',').map(t => t.trim()).filter(Boolean), isFavorite: form.elements['linkFavorite'].checked,
+                image_base64: imageBase64 
+            };
+            
+            if (!linkData.name || !linkData.url || !linkData.description) {
+                formMessage.textContent = "Nome, URL e Descrição são obrigatórios.";
+                formMessage.classList.remove('hidden'); return;
+            }
+
+            if (isEditing) {
+                const index = this.linksData.findIndex(l => l.id === linkId);
+                if (index !== -1) this.linksData[index] = { ...this.linksData[index], ...linkData, id: linkId };
+            } else {
+                this.linksData.push({ id: this.nextId++, ...linkData, dateAdded: new Date().toISOString().slice(0, 10) });
+            }
+            
+            this.renderLinks(); this.setupInitialFilters();
+            form.reset(); document.getElementById('linkFormContainer').classList.add('hidden');
+            if (isEditing) this.exitEditMode();
+        },
+
+        deleteLink(id) {
+            if (!this.currentFilters.isAdminMode) return; 
+            this.linksData = this.linksData.filter(link => link.id !== id);
+            this.renderLinks();
+            if (this.linksData.length === 0) this.exitEditMode();
+        },
+        
+        exportDataToJson() {
+            const dataStr = JSON.stringify(this.linksData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'linkario_backup.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            this.toggleOptionsMenu();
+        },
+        
+        triggerJsonImport() {
+            document.getElementById('jsonUpload').click();
+        },
+
+        importDataFromJson(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData) && importedData.length > 0 && 'name' in importedData[0] && 'url' in importedData[0]) {
+                        if (confirm('Isso substituirá TODOS os links atuais. Deseja continuar?')) {
+                            this.linksData = importedData;
+                            this.nextId = Math.max(...importedData.map(l => l.id), 0) + 1;
+                            this.setupInitialFilters();
+                            this.renderLinks();
+                            // Use custom message instead of alert
+                        }
+                    } else {
+                        // Use custom message instead of alert
+                    }
+                } catch (error) {
+                    // Use custom message instead of alert
+                    console.error("Erro no parse do JSON:", error);
+                } finally {
+                    event.target.value = '';
+                    this.toggleOptionsMenu();
+                }
+            };
+            reader.readAsText(file);
+        },
+
+
+        setupInitialFilters() {
+            const categories = [...new Set(this.linksData.map(l => l.category))].sort();
+            const tags = [...new Set(this.linksData.flatMap(l => l.tags))].sort();
+            
+            const categorySelect = document.getElementById('categoryFilter');
+            categorySelect.innerHTML = '<option value="">Categoria</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join('');
+
+            const tagButtonsContainer = document.getElementById('tagFilterButtons');
+            tagButtonsContainer.innerHTML = tags.map(tag => {
+                const isActive = this.currentFilters.activeTags.includes(tag) ? 'filter-active' : '';
+                return `<button class="text-sm px-3 py-1 rounded-full bg-gray-700/70 text-gray-300 hover:bg-highlight transition ${isActive}" onclick="app.toggleTag('${tag}', this)">${tag}</button>`;
+            }).join('');
+        },
+
+        init() {
+            this.setupInitialFilters();
+            this.renderLinks();
+        }
+    };
+
+    window.onload = () => {
+        // Inicializa a aplicação Linkário.
+        app.init();
+    };
+</script>
+
+</body>
+</html>
+
+
