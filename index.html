@@ -360,7 +360,7 @@
             document.getElementById('formSubmitButton').textContent = "Atualizar Link";
             const form = document.getElementById('linkDataForm');
             form.elements['linkId'].value = link.id; form.elements['linkName'].value = link.name; form.elements['linkUrl'].value = link.url; form.elements['linkDescription'].value = link.description; form.elements['linkCategory'].value = link.category; form.elements['linkTags'].value = link.tags.join(', '); form.elements['linkFavorite'].checked = link.isFavorite;
-            document.getElementById('linkImageBase64').value = link.image_base64 || '';
+            document.getElementById('linkImageBase64').value = link.image_base_64 || '';
             this.previewImage(document.getElementById('linkImage'));
             document.getElementById('linkFormContainer').classList.remove('hidden');
             document.getElementById('formMessage').classList.add('hidden');
@@ -432,7 +432,7 @@
                 imageBase64 = base64Input === 'REMOVE_FLAG' ? null : (this.linksData.find(l => l.id === linkId)?.image_base64 || null);
             }
             
-            const linkData = { name: form.elements['linkName'].value.trim(), url: form.elements['linkUrl'].value.trim(), description: form.elements['linkDescription'].value.trim(), category: form.elements['linkCategory'].value.trim() || 'Outros', tags: form.elements['linkTags'].value.split(',').map(t => t.trim()).filter(Boolean), isFavorite: form.elements['linkFavorite'].checked, image_base64: imageBase64 };
+            const linkData = { name: form.elements['linkName'].value.trim(), url: form.elements['linkUrl'].value.trim(), description: form.elements['linkDescription'].value.trim(), category: form.elements['linkCategory'].value.trim() || 'Outros', tags: form.elements['linkTags'].value.split(',').map(t => t.trim()).filter(Boolean), isFavorite: form.elements['linkFavorite'].checked, image_base_64: imageBase64 };
             
             if (!linkData.name || !linkData.url || !linkData.description) { formMessage.textContent = "Nome, URL e Descrição são obrigatórios."; formMessage.classList.remove('hidden'); return; }
 
@@ -444,7 +444,12 @@
                 this.linksData.push({ id: nextId, ...linkData, dateAdded: new Date().toISOString().slice(0, 10) });
             }
             
+            // ATUALIZAÇÃO IMEDIATA DA UI
+            this.init(); 
+            
+            // Salva no Firebase em segundo plano
             await this.saveLinksToFirestore();
+            
             this.showToast(isEditing ? "Link atualizado!" : "Link adicionado com sucesso!");
             form.reset(); document.getElementById('linkFormContainer').classList.add('hidden');
             if (isEditing) this.exitEditMode();
@@ -460,6 +465,9 @@
             this.linksData = this.linksData.filter(link => link.id !== id);
             await this.saveLinksToFirestore();
             this.showToast("Link excluído.");
+            // A UI já será atualizada pelo listener do onSnapshot,
+            // ou podemos forçar uma atualização local para garantir
+            this.init(); 
             if (this.linksData.length === 0 && this.currentFilters.isAdminMode) {
                 this.exitEditMode();
             }
@@ -516,7 +524,6 @@
             
             const close = () => {
                 modal.classList.add('hidden');
-                // Remove listeners to avoid multiple calls
                 confirmBtn.replaceWith(confirmBtn.cloneNode(true));
                 cancelBtn.replaceWith(cancelBtn.cloneNode(true));
             };
@@ -540,7 +547,6 @@
         init() { this.setupInitialFilters(); this.renderLinks(); }
     };
     
-    // CORREÇÃO: Expor o objeto 'app' para o escopo global
     window.app = app;
 
     window.onload = async () => {
