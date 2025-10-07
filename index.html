@@ -101,7 +101,6 @@
             <header class="flex flex-col sm:flex-row justify-between items-center mb-4">
                 <div class="flex items-center w-full sm:w-auto mb-3 sm:mb-0">
                     <h1 class="text-4xl font-extrabold tracking-tight text-accent mr-6">Linkário</h1>
-                    <p id="userIdDisplay" class="text-xs text-gray-500 truncate mt-1 hidden sm:block">ID: Carregando...</p>
                 </div>
             
                 <div class="w-full sm:w-auto flex justify-end items-center gap-2">
@@ -248,26 +247,7 @@
         <p id="toastMessage"></p>
     </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    
-    // Configuração do Firebase
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-linkario-app';
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-    let db, auth, userId = null;
-    let linksDocRef = null;
-
-    try {
-        const firebaseApp = initializeApp(firebaseConfig);
-        db = getFirestore(firebaseApp);
-        auth = getAuth(firebaseApp);
-        setLogLevel('error');
-    } catch (e) { console.error("Erro ao inicializar Firebase:", e); }
-
+<script>
     const app = {
         linksData: [],
         defaultLinks: [
@@ -276,33 +256,29 @@
         ],
         currentFilters: { search: '', category: '', activeTags: [], isFavorite: false, isSorted: false, isAdminMode: false },
         
-        async saveLinksToFirestore() {
-            if (!linksDocRef) return;
+        saveLinksToLocalStorage() {
             try {
-                // Clona o array para evitar problemas com proxies do Firebase
-                const dataToSave = JSON.parse(JSON.stringify(this.linksData));
-                await setDoc(linksDocRef, { links: dataToSave });
+                localStorage.setItem('linkario_data', JSON.stringify(this.linksData));
             } catch (error) {
-                console.error("Erro ao salvar links:", error);
-                this.showToast("Erro ao salvar os dados.", 'error');
+                console.error("Erro ao salvar no localStorage:", error);
+                this.showToast("Não foi possível salvar os dados.", 'error');
             }
         },
 
-        loadAndListenForLinks() {
-            if (!linksDocRef) return;
-            onSnapshot(linksDocRef, (docSnap) => {
-                if (docSnap.exists() && docSnap.data().links) {
-                    this.linksData = docSnap.data().links;
+        loadLinksFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem('linkario_data');
+                if (savedData) {
+                    this.linksData = JSON.parse(savedData);
                 } else {
                     this.linksData = this.defaultLinks;
-                    this.saveLinksToFirestore(); // Cria o documento inicial se não existir
+                    this.saveLinksToLocalStorage();
                 }
-                this.init(); // Único local que atualiza a UI com base nos dados
-            }, (error) => {
-                console.error("Erro ao carregar links:", error);
+            } catch (error) {
+                console.error("Erro ao carregar do localStorage:", error);
                 this.linksData = this.defaultLinks;
-                this.init();
-            });
+            }
+            this.init();
         },
 
         isNew(dateAdded) { return dateAdded ? (new Date().getTime() - new Date(dateAdded).getTime()) < (14 * 24 * 60 * 60 * 1000) : false; },
@@ -319,7 +295,7 @@
             const iconElement = link.image_base64 ? `<img src="${link.image_base64}" alt="${link.name} Ícone" class="w-full h-full object-cover">` : link.name.charAt(0).toUpperCase();
             const newBadge = this.isNew(link.dateAdded) ? `<span class="text-xs font-bold px-3 py-0.5 rounded-full bg-yellow-500 text-gray-900 absolute top-4 right-4 z-10 shadow-xl">NOVO</span>` : '';
             const favoriteIcon = link.isFavorite ? `<span class="absolute top-4 ${this.isNew(link.dateAdded) ? 'right-16' : 'right-4'} text-red-500 z-10"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></span>` : '';
-            const tagsHtml = link.tags.map(tag => `<span class="text-xs px-2 py-0.5 rounded-full bg-gray-700/70 text-gray-300 font-medium">${tag}</span>`).join('');
+            const tagsHtml = (link.tags || []).map(tag => `<span class="text-xs px-2 py-0.5 rounded-full bg-gray-700/70 text-gray-300 font-medium">${tag}</span>`).join('');
             const adminControls = this.currentFilters.isAdminMode ? `<div class="mt-4 border-t border-gray-800 pt-3 flex justify-between items-center"><span class="text-xs text-yellow-400 font-medium">Modo Edição Ativo</span><button onclick="event.preventDefault(); event.stopPropagation(); app.confirmDeleteLink(${link.id},'${link.name.replace(/'/g, "\\'")}')" class="text-xs px-4 py-1.5 rounded-lg bg-red-700 hover:bg-red-800 text-white font-semibold transition shadow-md">Excluir</button></div>` : '';
 
             card.innerHTML = `${newBadge}${favoriteIcon}<div class="flex items-start mb-3"><div class="link-icon-container w-10 h-10 flex items-center justify-center rounded-lg text-xl font-bold mr-4 overflow-hidden shadow-md">${iconElement}</div><div class="flex-1 min-w-0"><h3 class="text-xl font-semibold text-main truncate leading-tight mt-1">${link.name}</h3><p class="text-xs text-gray-500 truncate">${link.category}</p></div></div><p class="text-secondary text-sm mb-4 description-truncated" onclick="event.stopPropagation(); event.preventDefault(); this.classList.toggle('description-expanded');" title="Clique para expandir">${link.description}</p><div class="flex flex-wrap gap-2 pt-3 border-t border-gray-800">${tagsHtml}</div>${adminControls}`;
@@ -329,7 +305,8 @@
             let filtered = this.linksData.filter(link => {
                 const { search, category, activeTags, isFavorite } = this.currentFilters;
                 const searchTerm = search.toLowerCase();
-                return !(searchTerm && !link.name.toLowerCase().includes(searchTerm) && !link.description.toLowerCase().includes(searchTerm)) && !(category && link.category !== category) && !(activeTags.length > 0 && !activeTags.every(tag => link.tags.includes(tag))) && !(isFavorite && !link.isFavorite);
+                const linkTags = link.tags || [];
+                return !(searchTerm && !link.name.toLowerCase().includes(searchTerm) && !link.description.toLowerCase().includes(searchTerm)) && !(category && link.category !== category) && !(activeTags.length > 0 && !activeTags.every(tag => linkTags.includes(tag))) && !(isFavorite && !link.isFavorite);
             });
             if (this.currentFilters.isSorted) filtered.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
             return filtered;
@@ -361,7 +338,7 @@
             document.getElementById('linkFormTitle').textContent = "Editar Link";
             document.getElementById('formSubmitButton').textContent = "Atualizar Link";
             const form = document.getElementById('linkDataForm');
-            form.elements['linkId'].value = link.id; form.elements['linkName'].value = link.name; form.elements['linkUrl'].value = link.url; form.elements['linkDescription'].value = link.description; form.elements['linkCategory'].value = link.category; form.elements['linkTags'].value = link.tags.join(', '); form.elements['linkFavorite'].checked = link.isFavorite;
+            form.elements['linkId'].value = link.id; form.elements['linkName'].value = link.name; form.elements['linkUrl'].value = link.url; form.elements['linkDescription'].value = link.description; form.elements['linkCategory'].value = link.category; form.elements['linkTags'].value = (link.tags || []).join(', '); form.elements['linkFavorite'].checked = link.isFavorite;
             document.getElementById('linkImageBase64').value = link.image_base64 || '';
             this.previewImage(document.getElementById('linkImage'));
             document.getElementById('linkFormContainer').classList.remove('hidden');
@@ -419,6 +396,7 @@
         async saveOrUpdateLink(event) {
             event.preventDefault(); 
             const form = document.getElementById('linkDataForm');
+            const formMessage = document.getElementById('formMessage');
             const linkId = form.elements['linkId'].value ? parseInt(form.elements['linkId'].value) : null;
             const isEditing = linkId !== null;
 
@@ -434,11 +412,11 @@
                 imageBase64 = base64Input === 'REMOVE_FLAG' ? null : (this.linksData.find(l => l.id === linkId)?.image_base64 || null);
             }
             
-            const linkData = { name: form.elements['linkName'].value.trim(), url: form.elements['linkUrl'].value.trim(), description: form.elements['linkDescription'].value.trim(), category: form.elements['linkCategory'].value.trim() || 'Outros', tags: form.elements['linkTags'].value.split(',').map(t => t.trim()).filter(Boolean), isFavorite: form.elements['linkFavorite'].checked, image_base_64: imageBase64 };
+            const linkData = { name: form.elements['linkName'].value.trim(), url: form.elements['linkUrl'].value.trim(), description: form.elements['linkDescription'].value.trim(), category: form.elements['linkCategory'].value.trim() || 'Outros', tags: form.elements['linkTags'].value.split(',').map(t => t.trim()).filter(Boolean), isFavorite: form.elements['linkFavorite'].checked, image_base64: imageBase64 };
             
             if (!linkData.name || !linkData.url || !linkData.description) {
-                document.getElementById('formMessage').textContent = "Nome, URL e Descrição são obrigatórios.";
-                document.getElementById('formMessage').classList.remove('hidden');
+                formMessage.textContent = "Nome, URL e Descrição são obrigatórios.";
+                formMessage.classList.remove('hidden');
                 return;
             }
 
@@ -450,11 +428,12 @@
                 this.linksData.push({ id: nextId, ...linkData, dateAdded: new Date().toISOString().slice(0, 10) });
             }
             
-            // CORREÇÃO: A UI agora só será atualizada pelo listener do onSnapshot
-            await this.saveLinksToFirestore();
+            this.saveLinksToLocalStorage();
+            this.init(); // Atualiza a UI
             
             this.showToast(isEditing ? "Link atualizado!" : "Link adicionado com sucesso!");
             form.reset(); 
+            formMessage.classList.add('hidden');
             document.getElementById('linkFormContainer').classList.add('hidden');
             if (isEditing) this.exitEditMode();
         },
@@ -465,12 +444,10 @@
                 () => this.deleteLink(id)
             );
         },
-        async deleteLink(id) {
+        deleteLink(id) {
             this.linksData = this.linksData.filter(link => link.id !== id);
-            
-            // CORREÇÃO: A UI agora só será atualizada pelo listener do onSnapshot
-            await this.saveLinksToFirestore();
-
+            this.saveLinksToLocalStorage();
+            this.init(); // Atualiza a UI
             this.showToast("Link excluído.");
             if (this.linksData.length === 0 && this.currentFilters.isAdminMode) {
                 this.exitEditMode();
@@ -479,9 +456,10 @@
         
         exportDataToJson() {
             const dataStr = JSON.stringify(this.linksData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
             const link = document.createElement('a');
-            link.href = URL.createObjectURL(new Blob([dataStr], { type: 'application/json' }));
-            link.download = 'linkario_backup.json';
+            link.href = URL.createObjectURL(blob);
+            link.download = `linkario_backup_${new Date().toISOString().slice(0,10)}.json`;
             link.click();
             URL.revokeObjectURL(link.href);
             this.toggleOptionsMenu();
@@ -491,16 +469,17 @@
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = async (e) => {
+            reader.onload = (e) => {
                 try {
                     const importedData = JSON.parse(e.target.result);
-                    if (Array.isArray(importedData) && (importedData.length === 0 || ('name' in importedData[0] && 'url' in importedData[0]))) {
+                    if (Array.isArray(importedData)) {
                         this.showConfirmation(
                             "Importar Dados",
                             "Isso substituirá TODOS os links atuais. Deseja continuar?",
-                            async () => {
+                            () => {
                                 this.linksData = importedData;
-                                await this.saveLinksToFirestore();
+                                this.saveLinksToLocalStorage();
+                                this.init(); // Atualiza a UI
                                 this.showToast('Dados importados com sucesso!');
                             }
                         );
@@ -537,7 +516,7 @@
         },
         setupInitialFilters() {
             const categories = [...new Set(this.linksData.map(l => l.category))].sort();
-            const tags = [...new Set(this.linksData.flatMap(l => l.tags))].sort();
+            const tags = [...new Set(this.linksData.flatMap(l => l.tags || []))].sort();
             
             const categorySelect = document.getElementById('categoryFilter');
             categorySelect.innerHTML = '<option value="">Categoria</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -553,29 +532,8 @@
     
     window.app = app;
 
-    window.onload = async () => {
-        try {
-            if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
-            else await signInAnonymously(auth);
-        } catch (error) {
-            console.error("Authentication failed, signing in anonymously.", error);
-            await signInAnonymously(auth);
-        }
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                userId = user.uid;
-                document.getElementById('userIdDisplay').textContent = `ID: ${userId.substring(0,12)}...`;
-                document.getElementById('userIdDisplay').classList.remove('hidden');
-                linksDocRef = doc(db, `artifacts/${appId}/users/${userId}/link_collection/main`);
-                app.loadAndListenForLinks();
-            } else {
-                document.getElementById('userIdDisplay').textContent = "Modo Visitante";
-                document.getElementById('userIdDisplay').classList.remove('hidden');
-                app.linksData = app.defaultLinks;
-                app.init();
-            }
-        });
+    window.onload = () => {
+        app.loadLinksFromLocalStorage();
     };
 </script>
 
