@@ -272,14 +272,16 @@
         linksData: [],
         defaultLinks: [
             { id: 1, name: "Behance", url: "https://www.behance.net/", description: "Plataforma para descobrir e compartilhar trabalhos criativos e portfólios.", category: "Arte & Design", tags: ["Inspiração", "Portfólio"], isFavorite: true, dateAdded: "2024-10-10", image_base64: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNMTIgMkwyLjA1IDEwLjAxTDUuMDIgMTguMzhMMTguOTggMTguMzhMMjEuOTUgMTAuMDFMMTIgMloiLz4KPC9zdmc+" },
-            { id: 2, name: "Tailwind CSS", url: "https://tailwindcss.com/docs", description: "Documentação do framework CSS utilitário Tailwind.", category: "Desenvolvimento", tags: ["Frontend", "CSS"], isFavorite: false, dateAdded: "2024-05-15", image_base64: "" },
+            { id: 2, name: "Tailwind CSS", url: "https://tailwindcss.com/docs", description: "Documentação do framework CSS utilitário Tailwind.", category: "Desenvolvimento", tags: ["Frontend", "CSS"], isFavorite: false, dateAdded: "2024-05-15", image_base_64: "" },
         ],
         currentFilters: { search: '', category: '', activeTags: [], isFavorite: false, isSorted: false, isAdminMode: false },
         
         async saveLinksToFirestore() {
             if (!linksDocRef) return;
             try {
-                await setDoc(linksDocRef, { links: this.linksData });
+                // Clona o array para evitar problemas com proxies do Firebase
+                const dataToSave = JSON.parse(JSON.stringify(this.linksData));
+                await setDoc(linksDocRef, { links: dataToSave });
             } catch (error) {
                 console.error("Erro ao salvar links:", error);
                 this.showToast("Erro ao salvar os dados.", 'error');
@@ -293,9 +295,9 @@
                     this.linksData = docSnap.data().links;
                 } else {
                     this.linksData = this.defaultLinks;
-                    this.saveLinksToFirestore();
+                    this.saveLinksToFirestore(); // Cria o documento inicial se não existir
                 }
-                this.init();
+                this.init(); // Único local que atualiza a UI com base nos dados
             }, (error) => {
                 console.error("Erro ao carregar links:", error);
                 this.linksData = this.defaultLinks;
@@ -315,7 +317,6 @@
             }
 
             const iconElement = link.image_base64 ? `<img src="${link.image_base64}" alt="${link.name} Ícone" class="w-full h-full object-cover">` : link.name.charAt(0).toUpperCase();
-            // CORREÇÃO: Alterado a cor do selo "NOVO" para amarelo
             const newBadge = this.isNew(link.dateAdded) ? `<span class="text-xs font-bold px-3 py-0.5 rounded-full bg-yellow-500 text-gray-900 absolute top-4 right-4 z-10 shadow-xl">NOVO</span>` : '';
             const favoriteIcon = link.isFavorite ? `<span class="absolute top-4 ${this.isNew(link.dateAdded) ? 'right-16' : 'right-4'} text-red-500 z-10"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></span>` : '';
             const tagsHtml = link.tags.map(tag => `<span class="text-xs px-2 py-0.5 rounded-full bg-gray-700/70 text-gray-300 font-medium">${tag}</span>`).join('');
@@ -417,7 +418,7 @@
 
         async saveOrUpdateLink(event) {
             event.preventDefault(); 
-            const form = document.getElementById('linkDataForm'), formMessage = document.getElementById('formMessage');
+            const form = document.getElementById('linkDataForm');
             const linkId = form.elements['linkId'].value ? parseInt(form.elements['linkId'].value) : null;
             const isEditing = linkId !== null;
 
@@ -433,10 +434,13 @@
                 imageBase64 = base64Input === 'REMOVE_FLAG' ? null : (this.linksData.find(l => l.id === linkId)?.image_base64 || null);
             }
             
-            // CORREÇÃO: A propriedade deve ser `image_base64` para consistência
-            const linkData = { name: form.elements['linkName'].value.trim(), url: form.elements['linkUrl'].value.trim(), description: form.elements['linkDescription'].value.trim(), category: form.elements['linkCategory'].value.trim() || 'Outros', tags: form.elements['linkTags'].value.split(',').map(t => t.trim()).filter(Boolean), isFavorite: form.elements['linkFavorite'].checked, image_base64: imageBase64 };
+            const linkData = { name: form.elements['linkName'].value.trim(), url: form.elements['linkUrl'].value.trim(), description: form.elements['linkDescription'].value.trim(), category: form.elements['linkCategory'].value.trim() || 'Outros', tags: form.elements['linkTags'].value.split(',').map(t => t.trim()).filter(Boolean), isFavorite: form.elements['linkFavorite'].checked, image_base_64: imageBase64 };
             
-            if (!linkData.name || !linkData.url || !linkData.description) { formMessage.textContent = "Nome, URL e Descrição são obrigatórios."; formMessage.classList.remove('hidden'); return; }
+            if (!linkData.name || !linkData.url || !linkData.description) {
+                document.getElementById('formMessage').textContent = "Nome, URL e Descrição são obrigatórios.";
+                document.getElementById('formMessage').classList.remove('hidden');
+                return;
+            }
 
             if (isEditing) {
                 const index = this.linksData.findIndex(l => l.id === linkId);
@@ -446,11 +450,12 @@
                 this.linksData.push({ id: nextId, ...linkData, dateAdded: new Date().toISOString().slice(0, 10) });
             }
             
-            this.init(); 
+            // CORREÇÃO: A UI agora só será atualizada pelo listener do onSnapshot
             await this.saveLinksToFirestore();
             
             this.showToast(isEditing ? "Link atualizado!" : "Link adicionado com sucesso!");
-            form.reset(); document.getElementById('linkFormContainer').classList.add('hidden');
+            form.reset(); 
+            document.getElementById('linkFormContainer').classList.add('hidden');
             if (isEditing) this.exitEditMode();
         },
         confirmDeleteLink(id, name) {
@@ -462,8 +467,10 @@
         },
         async deleteLink(id) {
             this.linksData = this.linksData.filter(link => link.id !== id);
-            this.init(); 
+            
+            // CORREÇÃO: A UI agora só será atualizada pelo listener do onSnapshot
             await this.saveLinksToFirestore();
+
             this.showToast("Link excluído.");
             if (this.linksData.length === 0 && this.currentFilters.isAdminMode) {
                 this.exitEditMode();
