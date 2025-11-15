@@ -83,6 +83,26 @@
         .toast-animation {
             animation: fadeInOut 4s ease-in-out forwards;
         }
+
+        /* Estilo para os inputs do formulário */
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.75rem; /* 12px */
+            background-color: var(--bg-highlight);
+            border: 1px solid #3f3f46; /* border-gray-700 */
+            color: var(--text-main);
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .form-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px var(--accent-color);
+            outline: none;
+        }
+        .form-input::placeholder {
+            color: var(--text-secondary);
+        }
+
     </style>
 </head>
 <body class="bg-primary p-4 sm:p-8">
@@ -105,11 +125,15 @@
             
                 <div class="w-full sm:w-auto flex justify-end items-center gap-2">
                     <div class="relative">
-                        <button id="adminModeToggle" class="p-3 rounded-xl bg-card border border-gray-700 hover:bg-highlight text-sm text-secondary hover:text-accent transition duration-150 ease-in-out whitespace-nowrap flex items-center shadow-lg" onclick="app.toggleAdminDropdown()">
-                            Modo Admin
-                            <svg id="admin-icon" class="w-4 h-4 ml-2 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <!-- BOTÃO DE ADMIN/CONFIGURAÇÕES MODIFICADO -->
+                        <button id="adminModeToggle" class="p-3 rounded-xl bg-card border border-gray-700 hover:bg-highlight text-secondary hover:text-accent transition duration-150 ease-in-out flex items-center shadow-lg" onclick="app.toggleAdminDropdown()">
+                            <!-- Ícone de Engrenagem (Settings) -->
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </button>
+                        
+                        <!-- DROPDOWN DE ADMIN MODIFICADO (COM IMPORT/EXPORT) -->
                         <div id="adminMenuDropdown" class="absolute hidden top-full right-0 mt-3 w-60 bg-card rounded-xl shadow-2xl border border-gray-700 z-40 p-2 overflow-hidden">
+                            <!-- Opções de Admin -->
                             <button onclick="app.enterEditMode()" class="w-full text-left p-3 rounded-lg text-main hover:bg-highlight transition duration-150 flex items-center">
                                 <svg class="w-5 h-5 mr-3 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                 Editar Links
@@ -118,17 +142,11 @@
                                 <svg class="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                                 Criar Novo Card
                             </button>
-                            <hr id="adminMenuDivider" class="my-2 border-gray-800 hidden">
-                            <button id="adminMenuExit" onclick="app.exitEditMode()" class="w-full text-center p-3 rounded-lg bg-red-600/20 text-red-400 font-medium hover:bg-red-600/40 transition duration-150 hidden">
-                                Sair do Modo de Edição
-                            </button>
-                        </div>
-                    </div>
-                    <div class="relative">
-                        <button id="optionsMenuToggle" class="p-3 rounded-xl bg-card border border-gray-700 hover:bg-highlight text-secondary hover:text-accent transition duration-150 ease-in-out shadow-lg" onclick="app.toggleOptionsMenu()">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
-                        </button>
-                        <div id="optionsMenuDropdown" class="absolute hidden top-full right-0 mt-3 w-60 bg-card rounded-xl shadow-2xl border border-gray-700 z-40 p-2 overflow-hidden">
+                            
+                            <!-- Divisor -->
+                            <hr class="my-2 border-gray-800">
+
+                            <!-- OPÇÕES DE IMPORT/EXPORT MOVIDAS PARA CÁ -->
                             <button onclick="app.exportDataToJson()" class="w-full text-left p-3 rounded-lg text-main hover:bg-highlight transition duration-150 flex items-center">
                                 <svg class="w-5 h-5 mr-3 text-sky-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                                 Exportar em JSON
@@ -138,8 +156,15 @@
                                 Importar de JSON
                             </button>
                             <input type="file" id="jsonUpload" class="hidden" accept=".json" onchange="app.importDataFromJson(event)">
+                            
+                            <!-- Botão de Sair do Modo Edição -->
+                            <hr id="adminMenuDivider" class="my-2 border-gray-800 hidden">
+                            <button id="adminMenuExit" onclick="app.exitEditMode()" class="w-full text-center p-3 rounded-lg bg-red-600/20 text-red-400 font-medium hover:bg-red-600/40 transition duration-150 hidden">
+                                Sair do Modo de Edição
+                            </button>
                         </div>
                     </div>
+                    <!-- BOTÃO DE OPÇÕES (3 PONTOS) E SEU DROPDOWN FORAM REMOVIDOS -->
                 </div>
             </header>
             
@@ -306,7 +331,17 @@
                 const { search, category, activeTags, isFavorite } = this.currentFilters;
                 const searchTerm = search.toLowerCase();
                 const linkTags = link.tags || [];
-                return !(searchTerm && !link.name.toLowerCase().includes(searchTerm) && !link.description.toLowerCase().includes(searchTerm)) && !(category && link.category !== category) && !(activeTags.length > 0 && !activeTags.every(tag => linkTags.includes(tag))) && !(isFavorite && !link.isFavorite);
+                // Lógica de filtro:
+                // 1. (search): Se 'search' existe, o nome OU a descrição devem incluir o 'searchTerm'. Se não, o link é filtrado (retorna false).
+                const searchMatch = !searchTerm || (link.name.toLowerCase().includes(searchTerm) || link.description.toLowerCase().includes(searchTerm));
+                // 2. (category): Se 'category' existe, a categoria do link deve ser igual.
+                const categoryMatch = !category || (link.category === category);
+                // 3. (activeTags): Se existem tags ativas, TODAS elas devem estar presentes nas tags do link.
+                const tagsMatch = activeTags.length === 0 || activeTags.every(tag => linkTags.includes(tag));
+                // 4. (isFavorite): Se 'isFavorite' é true, o link deve ser favorito.
+                const favoriteMatch = !isFavorite || link.isFavorite;
+                
+                return searchMatch && categoryMatch && tagsMatch && favoriteMatch;
             });
             if (this.currentFilters.isSorted) filtered.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
             return filtered;
@@ -321,15 +356,65 @@
             filteredLinks.forEach(link => linksGrid.appendChild(this.createLinkCard(link)));
         },
 
-        updateFilter(key, value) { this.currentFilters[key] = value.trim(); this.renderLinks(); },
-        toggleTag(tag, button) { const index = this.currentFilters.activeTags.indexOf(tag); (index > -1) ? this.currentFilters.activeTags.splice(index, 1) : this.currentFilters.activeTags.push(tag); button.classList.toggle('filter-active'); this.renderLinks(); },
-        toggleFavorite() { this.currentFilters.isFavorite = !this.currentFilters.isFavorite; document.getElementById('favoriteToggle').classList.toggle('filter-active'); document.getElementById('heart-icon').classList.toggle('fill-current', this.currentFilters.isFavorite); this.renderLinks(); },
-        toggleSort() { this.currentFilters.isSorted = !this.currentFilters.isSorted; document.getElementById('sortToggle').classList.toggle('filter-active'); this.renderLinks(); },
-        toggleTagDropdown() { document.getElementById('tagDropdown').classList.toggle('hidden'); },
-        toggleOptionsMenu() { document.getElementById('optionsMenuDropdown').classList.toggle('hidden'); },
-        toggleAdminDropdown() { const dropdown = document.getElementById('adminMenuDropdown'); dropdown.classList.toggle('hidden'); document.getElementById('admin-icon').classList.toggle('rotate-180'); const isEditing = this.currentFilters.isAdminMode; document.getElementById('adminMenuExit').classList.toggle('hidden', !isEditing); document.getElementById('adminMenuDivider').classList.toggle('hidden', !isEditing); },
-        enterEditMode(isSilent = false) { if (this.currentFilters.isAdminMode) { if (!isSilent) this.toggleAdminDropdown(); return; } this.currentFilters.isAdminMode = true; if (!isSilent) this.toggleAdminDropdown(); document.getElementById('linkFormContainer').classList.add('hidden'); const btn = document.getElementById('adminModeToggle'); btn.classList.add('filter-active', 'bg-yellow-600/80'); btn.innerHTML = 'Modo Edição (ATIVO) <svg id="admin-icon" class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>'; this.renderLinks(); },
-        exitEditMode() { this.currentFilters.isAdminMode = false; if (!document.getElementById('adminMenuDropdown').classList.contains('hidden')) this.toggleAdminDropdown(); const btn = document.getElementById('adminModeToggle'); btn.classList.remove('filter-active', 'bg-yellow-600/80'); btn.innerHTML = 'Modo Admin <svg id="admin-icon" class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>'; this.renderLinks(); },
+        updateFilter(key, value) { 
+            this.currentFilters[key] = (typeof value === 'string') ? value.trim() : value; 
+            this.renderLinks(); 
+        },
+        toggleTag(tag, button) { 
+            const index = this.currentFilters.activeTags.indexOf(tag); 
+            (index > -1) ? this.currentFilters.activeTags.splice(index, 1) : this.currentFilters.activeTags.push(tag); 
+            button.classList.toggle('filter-active'); 
+            this.renderLinks(); 
+        },
+        toggleFavorite() { 
+            this.currentFilters.isFavorite = !this.currentFilters.isFavorite; 
+            document.getElementById('favoriteToggle').classList.toggle('filter-active'); 
+            document.getElementById('heart-icon').classList.toggle('fill-current', this.currentFilters.isFavorite); 
+            this.renderLinks(); 
+        },
+        toggleSort() { 
+            this.currentFilters.isSorted = !this.currentFilters.isSorted; 
+            document.getElementById('sortToggle').classList.toggle('filter-active'); 
+            this.renderLinks(); 
+        },
+        toggleTagDropdown() { 
+            document.getElementById('tagDropdown').classList.toggle('hidden'); 
+        },
+        
+        // FUNÇÃO REMOVIDA (toggleOptionsMenu)
+        
+        // FUNÇÃO MODIFICADA (toggleAdminDropdown)
+        toggleAdminDropdown() { 
+            const dropdown = document.getElementById('adminMenuDropdown'); 
+            dropdown.classList.toggle('hidden'); 
+            // O ícone de seta rotacionando foi removido, pois agora é uma engrenagem
+            const isEditing = this.currentFilters.isAdminMode; 
+            document.getElementById('adminMenuExit').classList.toggle('hidden', !isEditing); 
+            document.getElementById('adminMenuDivider').classList.toggle('hidden', !isEditing); 
+        },
+        // FUNÇÃO MODIFICADA (enterEditMode)
+        enterEditMode(isSilent = false) { 
+            if (this.currentFilters.isAdminMode) { 
+                if (!isSilent && !document.getElementById('adminMenuDropdown').classList.contains('hidden')) this.toggleAdminDropdown(); 
+                return; 
+            } 
+            this.currentFilters.isAdminMode = true; 
+            if (!isSilent) this.toggleAdminDropdown(); 
+            document.getElementById('linkFormContainer').classList.add('hidden'); 
+            const btn = document.getElementById('adminModeToggle'); 
+            btn.classList.add('filter-active', 'bg-yellow-600/80'); 
+            // Texto do botão não muda mais (agora é só um ícone)
+            this.renderLinks(); 
+        },
+        // FUNÇÃO MODIFICADA (exitEditMode)
+        exitEditMode() { 
+            this.currentFilters.isAdminMode = false; 
+            if (!document.getElementById('adminMenuDropdown').classList.contains('hidden')) this.toggleAdminDropdown(); 
+            const btn = document.getElementById('adminModeToggle'); 
+            btn.classList.remove('filter-active', 'bg-yellow-600/80'); 
+            // Texto do botão não muda mais (agora é só um ícone)
+            this.renderLinks(); 
+        },
         
         openEditForm(id) {
             if (!this.currentFilters.isAdminMode) return;
@@ -338,23 +423,31 @@
             document.getElementById('linkFormTitle').textContent = "Editar Link";
             document.getElementById('formSubmitButton').textContent = "Atualizar Link";
             const form = document.getElementById('linkDataForm');
-            form.elements['linkId'].value = link.id; form.elements['linkName'].value = link.name; form.elements['linkUrl'].value = link.url; form.elements['linkDescription'].value = link.description; form.elements['linkCategory'].value = link.category; form.elements['linkTags'].value = (link.tags || []).join(', '); form.elements['linkFavorite'].checked = link.isFavorite;
+            form.elements['linkId'].value = link.id; 
+            form.elements['linkName'].value = link.name; 
+            form.elements['linkUrl'].value = link.url; 
+            form.elements['linkDescription'].value = link.description; 
+            form.elements['linkCategory'].value = link.category; 
+            form.elements['linkTags'].value = (link.tags || []).join(', '); 
+            form.elements['linkFavorite'].checked = link.isFavorite;
             document.getElementById('linkImageBase64').value = link.image_base64 || '';
-            this.previewImage(document.getElementById('linkImage'));
+            this.previewImage(document.getElementById('linkImage')); // Mostra a imagem existente
             document.getElementById('linkFormContainer').classList.remove('hidden');
             document.getElementById('formMessage').classList.add('hidden');
-            this.enterEditMode(true);
+            this.enterEditMode(true); // Garante que estamos em modo de edição, silenciosamente
         },
         openNewLinkForm() {
             if (!document.getElementById('adminMenuDropdown').classList.contains('hidden')) this.toggleAdminDropdown();
             document.getElementById('linkFormTitle').textContent = "Adicionar Novo Link";
             document.getElementById('formSubmitButton').textContent = "Salvar Link";
             const form = document.getElementById('linkDataForm');
-            form.reset(); form.elements['linkId'].value = '';
+            form.reset(); 
+            form.elements['linkId'].value = '';
             document.getElementById('linkImageBase64').value = '';
-            this.previewImage(document.getElementById('linkImage'));
+            this.previewImage(document.getElementById('linkImage')); // Limpa o preview
             document.getElementById('linkFormContainer').classList.remove('hidden');
-            if (this.currentFilters.isAdminMode) this.exitEditMode();
+            document.getElementById('formMessage').classList.add('hidden');
+            if (this.currentFilters.isAdminMode) this.exitEditMode(); // Sai do modo edição se estiver ativo
         },
         
         processImage(file) {
@@ -367,9 +460,13 @@
                         canvas.width = MAX_SIZE; canvas.height = MAX_SIZE;
                         const ctx = canvas.getContext('2d');
                         let sx = 0, sy = 0, sWidth = img.width, sHeight = img.height;
-                        if (sWidth > sHeight) { sx = (sWidth - sHeight) / 2; sWidth = sHeight; } else if (sHeight > sWidth) { sy = (sHeight - sWidth) / 2; sHeight = sWidth; }
+                        if (sWidth > sHeight) { 
+                            sx = (sWidth - sHeight) / 2; sWidth = sHeight; 
+                        } else if (sHeight > sWidth) { 
+                            sy = (sHeight - sWidth) / 2; sHeight = sWidth; 
+                        }
                         ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, MAX_SIZE, MAX_SIZE);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7));
+                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Converte para JPEG com 70% de qualidade
                     };
                     img.src = event.target.result;
                 };
@@ -377,21 +474,42 @@
             });
         },
         previewImage(input) {
-            const preview = document.getElementById('imagePreview'), placeholder = document.getElementById('imagePreviewPlaceholder'), removeContainer = document.getElementById('removeImageContainer'), base64Input = document.getElementById('linkImageBase64');
-            const showPreview = (src) => { preview.src = src; preview.classList.remove('hidden'); placeholder.classList.add('hidden'); removeContainer.classList.remove('hidden'); };
-            const hidePreview = () => { preview.src = ''; preview.classList.add('hidden'); placeholder.classList.remove('hidden'); removeContainer.classList.add('hidden'); };
+            const preview = document.getElementById('imagePreview'), 
+                  placeholder = document.getElementById('imagePreviewPlaceholder'), 
+                  removeContainer = document.getElementById('removeImageContainer'), 
+                  base64Input = document.getElementById('linkImageBase64');
+            
+            const showPreview = (src) => { 
+                preview.src = src; 
+                preview.classList.remove('hidden'); 
+                placeholder.classList.add('hidden'); 
+                removeContainer.classList.remove('hidden'); 
+            };
+            const hidePreview = () => { 
+                preview.src = ''; 
+                preview.classList.add('hidden'); 
+                placeholder.classList.remove('hidden'); 
+                removeContainer.classList.add('hidden'); 
+            };
 
             if (input.files && input.files[0]) {
+                // Caso 1: Novo arquivo selecionado
                 const reader = new FileReader();
                 reader.onload = e => showPreview(e.target.result);
                 reader.readAsDataURL(input.files[0]);
             } else if (base64Input.value && base64Input.value !== 'REMOVE_FLAG') {
+                // Caso 2: Editando, imagem base64 existente
                 showPreview(base64Input.value);
             } else {
+                // Caso 3: Nenhuma imagem (Novo link ou imagem removida)
                 hidePreview();
             }
         },
-        removeImage() { document.getElementById('linkImage').value = ''; document.getElementById('linkImageBase64').value = 'REMOVE_FLAG'; this.previewImage(document.getElementById('linkImage')); },
+        removeImage() { 
+            document.getElementById('linkImage').value = ''; // Limpa o input file
+            document.getElementById('linkImageBase64').value = 'REMOVE_FLAG'; // Marca para remoção
+            this.previewImage(document.getElementById('linkImage')); // Atualiza o preview (que vai sumir)
+        },
 
         async saveOrUpdateLink(event) {
             event.preventDefault(); 
@@ -402,17 +520,41 @@
 
             const imageFile = form.elements['linkImage'].files[0];
             let imageBase64 = form.elements['linkImageBase64'].value || null;
-            if (imageFile) {
-                form.elements['formSubmitButton'].disabled = true;
-                this.showToast("Processando imagem...");
-                imageBase64 = await this.processImage(imageFile);
+            
+            try {
+                if (imageFile) {
+                    // Se um novo arquivo foi enviado, processa ele
+                    form.elements['formSubmitButton'].disabled = true;
+                    this.showToast("Processando imagem...");
+                    imageBase64 = await this.processImage(imageFile);
+                    form.elements['formSubmitButton'].disabled = false;
+                } else if (isEditing) {
+                    // Se está editando e nenhum arquivo novo foi enviado
+                    const base64Input = form.elements['linkImageBase64'].value;
+                    if (base64Input === 'REMOVE_FLAG') {
+                        imageBase64 = null; // Imagem foi removida
+                    } else {
+                        // Mantém a imagem antiga (que já estava no input hidden)
+                        imageBase64 = this.linksData.find(l => l.id === linkId)?.image_base64 || null;
+                    }
+                }
+            } catch (error) {
+                console.error("Erro ao processar imagem:", error);
+                this.showToast("Erro ao processar imagem.", 'error');
                 form.elements['formSubmitButton'].disabled = false;
-            } else if (isEditing) {
-                const base64Input = form.elements['linkImageBase64'].value;
-                imageBase64 = base64Input === 'REMOVE_FLAG' ? null : (this.linksData.find(l => l.id === linkId)?.image_base64 || null);
+                return;
             }
             
-            const linkData = { name: form.elements['linkName'].value.trim(), url: form.elements['linkUrl'].value.trim(), description: form.elements['linkDescription'].value.trim(), category: form.elements['linkCategory'].value.trim() || 'Outros', tags: form.elements['linkTags'].value.split(',').map(t => t.trim()).filter(Boolean), isFavorite: form.elements['linkFavorite'].checked, image_base64: imageBase64 };
+            
+            const linkData = { 
+                name: form.elements['linkName'].value.trim(), 
+                url: form.elements['linkUrl'].value.trim(), 
+                description: form.elements['linkDescription'].value.trim(), 
+                category: form.elements['linkCategory'].value.trim() || 'Outros', 
+                tags: form.elements['linkTags'].value.split(',').map(t => t.trim()).filter(Boolean), 
+                isFavorite: form.elements['linkFavorite'].checked, 
+                image_base64: imageBase64 
+            };
             
             if (!linkData.name || !linkData.url || !linkData.description) {
                 formMessage.textContent = "Nome, URL e Descrição são obrigatórios.";
@@ -454,6 +596,7 @@
             }
         },
         
+        // FUNÇÃO MODIFICADA (exportDataToJson)
         exportDataToJson() {
             const dataStr = JSON.stringify(this.linksData, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
@@ -462,12 +605,21 @@
             link.download = `linkario_backup_${new Date().toISOString().slice(0,10)}.json`;
             link.click();
             URL.revokeObjectURL(link.href);
-            this.toggleOptionsMenu();
+            this.toggleAdminDropdown(); // Modificado de toggleOptionsMenu
         },
-        triggerJsonImport() { document.getElementById('jsonUpload').click(); },
+        triggerJsonImport() { 
+            document.getElementById('jsonUpload').click(); 
+        },
+        // FUNÇÃO MODIFICADA (importDataFromJson)
         importDataFromJson(event) {
             const file = event.target.files[0];
             if (!file) return;
+            
+            // Fecha o dropdown imediatamente
+            if (!document.getElementById('adminMenuDropdown').classList.contains('hidden')) {
+                this.toggleAdminDropdown(); 
+            }
+
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
@@ -485,7 +637,9 @@
                         );
                     } else { this.showToast('Erro: Arquivo JSON inválido.', 'error'); }
                 } catch (error) { this.showToast('Erro ao ler o arquivo JSON.', 'error'); } 
-                finally { event.target.value = ''; this.toggleOptionsMenu(); }
+                finally { 
+                    event.target.value = ''; // Reseta o input para permitir importar o mesmo arquivo novamente
+                }
             };
             reader.readAsText(file);
         },
@@ -507,27 +661,38 @@
             
             const close = () => {
                 modal.classList.add('hidden');
+                // Remove event listeners antigos para evitar chamadas múltiplas
                 confirmBtn.replaceWith(confirmBtn.cloneNode(true));
                 cancelBtn.replaceWith(cancelBtn.cloneNode(true));
             };
             
+            // Re-adiciona os event listeners
             document.getElementById('modalConfirm').onclick = () => { close(); onConfirm(); };
             document.getElementById('modalCancel').onclick = close;
         },
         setupInitialFilters() {
-            const categories = [...new Set(this.linksData.map(l => l.category))].sort();
-            const tags = [...new Set(this.linksData.flatMap(l => l.tags || []))].sort();
+            const categories = [...new Set(this.linksData.map(l => l.category))].filter(Boolean).sort();
+            const tags = [...new Set(this.linksData.flatMap(l => l.tags || []))].filter(Boolean).sort();
             
             const categorySelect = document.getElementById('categoryFilter');
             categorySelect.innerHTML = '<option value="">Categoria</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join('');
 
             const tagButtonsContainer = document.getElementById('tagFilterButtons');
-            tagButtonsContainer.innerHTML = tags.map(tag => {
-                const isActive = this.currentFilters.activeTags.includes(tag) ? 'filter-active' : '';
-                return `<button class="text-sm px-3 py-1 rounded-full bg-gray-700/70 text-gray-300 hover:bg-highlight transition ${isActive}" onclick="app.toggleTag('${tag}', this)">${tag}</button>`;
-            }).join('');
+            if (tags.length > 0) {
+                tagButtonsContainer.innerHTML = tags.map(tag => {
+                    const isActive = this.currentFilters.activeTags.includes(tag) ? 'filter-active' : '';
+                    return `<button class="text-sm px-3 py-1 rounded-full bg-gray-700/70 text-gray-300 hover:bg-highlight transition ${isActive}" onclick="app.toggleTag('${tag}', this)">${tag}</button>`;
+                }).join('');
+                document.getElementById('tagDropdownButton').classList.remove('hidden');
+            } else {
+                tagButtonsContainer.innerHTML = '';
+                document.getElementById('tagDropdownButton').classList.add('hidden');
+            }
         },
-        init() { this.setupInitialFilters(); this.renderLinks(); }
+        init() { 
+            this.setupInitialFilters(); 
+            this.renderLinks(); 
+        }
     };
     
     window.app = app;
@@ -539,5 +704,3 @@
 
 </body>
 </html>
-
-
