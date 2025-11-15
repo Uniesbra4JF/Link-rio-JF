@@ -22,6 +22,8 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-primary);
+            /* Efeito de iluminação sutil no topo */
+            background: radial-gradient(ellipse at top, rgba(59, 130, 246, 0.1), var(--bg-primary) 70%);
             color: var(--text-main);
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
@@ -50,6 +52,16 @@
             transform: translateY(-4px);
             border-color: var(--accent-color);
             box-shadow: 0 12px 25px rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Animação para os cards ao carregar/filtrar */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .link-card {
+            /* ... (as classes de transição, borda, shadow já estão no JS) ... */
+            animation: fadeIn 0.4s ease-out forwards; /* Aplica a animação */
         }
         
         .link-icon-container {
@@ -82,6 +94,15 @@
         }
         .toast-animation {
             animation: fadeInOut 4s ease-in-out forwards;
+        }
+
+        /* Animação para o formulário aparecer */
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #linkFormContainer:not(.hidden) {
+            animation: slideDown 0.5s ease-out forwards;
         }
 
         /* Estilo para os inputs do formulário */
@@ -117,7 +138,7 @@
     <!-- Conteúdo Principal do Linkário -->
     <div class="max-w-7xl mx-auto">
         
-        <div class="pb-4 pt-2 rounded-b-xl">
+        <div class="pb-4 pt-2 rounded-b-xl border-b border-gray-800">
             <header class="flex flex-col sm:flex-row justify-between items-center mb-4">
                 <div class="flex items-center w-full sm:w-auto mb-3 sm:mb-0">
                     <h1 class="text-4xl font-extrabold tracking-tight text-accent mr-6">Linkário</h1>
@@ -311,7 +332,7 @@
             const card = document.createElement('a');
             card.href = this.currentFilters.isAdminMode ? "javascript:void(0)" : link.url;
             if (!this.currentFilters.isAdminMode) card.target = "_blank";
-            card.className = "link-card block bg-card p-6 rounded-2xl transition duration-300 relative";
+            card.className = "link-card group block bg-card p-6 rounded-2xl transition duration-300 relative"; // Adicionado 'group'
             if (this.currentFilters.isAdminMode) {
                 card.classList.add('ring-4', 'ring-yellow-500/50', 'ring-offset-2', 'ring-offset-primary'); 
                 card.onclick = (e) => { e.preventDefault(); this.openEditForm(link.id); };
@@ -323,7 +344,7 @@
             const tagsHtml = (link.tags || []).map(tag => `<span class="text-xs px-2 py-0.5 rounded-full bg-gray-700/70 text-gray-300 font-medium">${tag}</span>`).join('');
             const adminControls = this.currentFilters.isAdminMode ? `<div class="mt-4 border-t border-gray-800 pt-3 flex justify-between items-center"><span class="text-xs text-yellow-400 font-medium">Modo Edição Ativo</span><button onclick="event.preventDefault(); event.stopPropagation(); app.confirmDeleteLink(${link.id},'${link.name.replace(/'/g, "\\'")}')" class="text-xs px-4 py-1.5 rounded-lg bg-red-700 hover:bg-red-800 text-white font-semibold transition shadow-md">Excluir</button></div>` : '';
 
-            card.innerHTML = `${newBadge}${favoriteIcon}<div class="flex items-start mb-3"><div class="link-icon-container w-10 h-10 flex items-center justify-center rounded-lg text-xl font-bold mr-4 overflow-hidden shadow-md">${iconElement}</div><div class="flex-1 min-w-0"><h3 class="text-xl font-semibold text-main truncate leading-tight mt-1">${link.name}</h3><p class="text-xs text-gray-500 truncate">${link.category}</p></div></div><p class="text-secondary text-sm mb-4 description-truncated" onclick="event.stopPropagation(); event.preventDefault(); this.classList.toggle('description-expanded');" title="Clique para expandir">${link.description}</p><div class="flex flex-wrap gap-2 pt-3 border-t border-gray-800">${tagsHtml}</div>${adminControls}`;
+            card.innerHTML = `${newBadge}${favoriteIcon}<div class="flex items-start mb-3"><div class="link-icon-container w-10 h-10 flex items-center justify-center rounded-lg text-xl font-bold mr-4 overflow-hidden shadow-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">${iconElement}</div><div class="flex-1 min-w-0"><h3 class="text-xl font-semibold text-main truncate leading-tight mt-1">${link.name}</h3><p class="text-xs text-gray-500 truncate">${link.category}</p></div></div><p class="text-secondary text-sm mb-4 description-truncated" onclick="event.stopPropagation(); event.preventDefault(); this.classList.toggle('description-expanded');" title="Clique para expandir">${link.description}</p><div class="flex flex-wrap gap-2 pt-3 border-t border-gray-800">${tagsHtml}</div>${adminControls}`;
             return card;
         },
         filterLinks() {
@@ -699,6 +720,43 @@
 
     window.onload = () => {
         app.loadLinksFromLocalStorage();
+
+        // Adiciona listener para fechar dropdowns ao clicar fora
+        window.addEventListener('click', (event) => {
+            const adminMenu = document.getElementById('adminMenuDropdown');
+            const adminToggle = document.getElementById('adminModeToggle');
+            const tagMenu = document.getElementById('tagDropdown');
+            const tagToggle = document.getElementById('tagDropdownButton');
+
+            // Se clicou no toggle admin, fecha o menu tag
+            if (adminToggle.contains(event.target)) {
+                if (!tagMenu.classList.contains('hidden')) {
+                    tagMenu.classList.add('hidden');
+                }
+                return; // Deixa a função toggleAdminDropdown() cuidar de abrir/fechar
+            }
+            
+            // Se clicou no toggle tag, fecha o menu admin
+             if (tagToggle.contains(event.target)) {
+                if (!adminMenu.classList.contains('hidden')) {
+                    adminMenu.classList.add('hidden');
+                }
+                return; // Deixa a função toggleTagDropdown() cuidar de abrir/fechar
+            }
+
+            // Se o clique foi DENTRO de um menu aberto, não faz nada (permite cliques dentro do menu)
+            if (adminMenu.contains(event.target) || tagMenu.contains(event.target)) {
+                return;
+            }
+
+            // Se o clique foi fora de tudo, fecha ambos os menus
+            if (!adminMenu.classList.contains('hidden')) {
+                adminMenu.classList.add('hidden');
+            }
+            if (!tagMenu.classList.contains('hidden')) {
+                tagMenu.classList.add('hidden');
+            }
+        });
     };
 </script>
 
